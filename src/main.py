@@ -1,41 +1,32 @@
 from src.validation.validator import validate_record
+from src.processing.processor import process_records
+from src.data_io.io import load_raw_data, save_processed_data
 import pandas as pd
+import logging
 
-df = pd.read_csv("data/raw/ai4i2020.csv")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+
+df = load_raw_data()
 firstfive = df.head(5)
 
 
-def process_records(df):
-    valid_records = []
-    invalid_records = []
-
-    for index, row in df.iterrows():
-        record = {
-            "type": row["Type"],
-            "air_temperature": row["Air temperature [K]"],
-            "process_temperature": row["Process temperature [K]"],
-            "rotational_speed": row["Rotational speed [rpm]"],
-            "torque": row["Torque [Nm]"],
-            "tool_wear": row["Tool wear [min]"]
-        }
-
-        errors = validate_record(record)
-
-        if errors == []:
-            valid_records.append(record)
-        else:
-            invalid_records.append({
-                "row": index,
-                "record": record,
-                "errors": errors
-            })
-
-    return valid_records, invalid_records
-
-
 valid_records, invalid_records = process_records(df)
+clean_df = pd.DataFrame(valid_records)
+save_processed_data(clean_df)
 
-print("Total records:", len(df))
-print("Valid records:", len(valid_records))
-print("Invalid records:", len(invalid_records))
-print("Sample invalid records:", invalid_records[:5])
+logger.info("Total records: %s", len(df))
+logger.info("Valid records: %s", len(valid_records))
+logger.info("Invalid records: %s", len(invalid_records))
+
+if invalid_records:
+    logger.warning(
+        "Found %s invalid records",
+        len(invalid_records)
+    )
+else:
+    logger.info("All records passed validation")
