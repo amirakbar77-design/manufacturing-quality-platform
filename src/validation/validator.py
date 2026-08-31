@@ -1,19 +1,21 @@
 import numpy as np
 
 rules = {
-    "temperature": {
-        "min": 250,
-        "max": 400
-    },
-    "rotational_speed": {
-        "min": 500,
-        "max": 3000
-    }
+    "air_temperature": {"min": 250, "max": 400},
+    "process_temperature": {"min": 250, "max": 400},
+    "rotational_speed": {"min": 500, "max": 3000},
+    "torque": {"min": 0, "max": 100},
+    "tool_wear": {"min": 0, "max": 300}
 }
 
 
 def validate_record(record):
     errors = []
+
+    if "type" not in record:
+        errors.append("type field is missing")
+    elif record["type"] not in ["L", "M", "H"]:
+        errors.append("Invalid Machine Type")
 
     for field, rule in rules.items():
 
