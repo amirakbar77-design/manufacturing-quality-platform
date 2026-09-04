@@ -7,6 +7,8 @@ def process_records(df):
 
     for index, row in df.iterrows():
         record = {
+            "product_id": row["Product ID"],
+            "udi": row["UDI"],
             "type": row["Type"],
             "air_temperature": row["Air temperature [K]"],
             "process_temperature": row["Process temperature [K]"],
