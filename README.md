@@ -5,3 +5,14 @@ A production-oriented data and machine learning system for detecting abnormal ma
 ## Development
 
 Development follows a feature-branch workflow. Changes are reviewed through pull requests before being merged into the main branch.
+
+## Tech Stack
+
+- Python
+- pandas
+- NumPy
+- PostgreSQL
+- psycopg
+- pytest
+- scikit-learn
+
