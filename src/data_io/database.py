@@ -108,3 +108,112 @@ def insert_machine_records_bulk(records):
                         record["tool_wear"],
                     ),
                 )
+
+
+def insert_machine_failure(failure):
+    reading = get_machine_record_by_udi(failure["udi"])
+    reading_id = reading["id"]
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+INSERT INTO machine_failures (
+    reading_id,
+    machine_failure,
+    twf,
+    hdf,
+    pwf,
+    osf,
+    rnf
+)
+VALUES (%s, %s, %s, %s, %s, %s, %s)
+ON CONFLICT (reading_id) DO NOTHING
+
+
+            """,
+                (
+                    reading_id,
+                    failure["machine_failure"],
+                    failure["twf"],
+                    failure["hdf"],
+                    failure["pwf"],
+                    failure["osf"],
+                    failure["rnf"]
+
+
+
+
+                ),
+
+            )
+
+
+def get_machine_failure_by_udi(udi):
+    with get_db_connection() as connection:
+        with connection.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                SELECT machine_failures.*
+                FROM machine_readings
+                JOIN machine_failures
+                    ON machine_failures.reading_id = machine_readings.id
+                WHERE machine_readings.udi = %s
+
+                """,
+                (udi,)
+            )
+            row = cursor.fetchone()
+            return row
+
+
+def delete_machine_failure_by_udi(udi):
+    with get_db_connection() as connection:
+        with connection.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                DELETE FROM machine_failures
+                USING machine_readings
+                WHERE machine_failures.reading_id = machine_readings.id
+                  AND machine_readings.udi = %s
+                """,
+                (udi,)
+            )
+
+
+def insert_machine_failures_bulk(failures):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            for failure in failures:
+                cursor.execute(
+                    """
+                    INSERT INTO machine_failures (
+                        reading_id,
+                        machine_failure,
+                        twf,
+                        hdf,
+                        pwf,
+                        osf,
+                        rnf
+                    )
+                    SELECT
+                        id,
+                        %s,
+                        %s,
+                        %s,
+                        %s,
+                        %s,
+                        %s
+                    FROM machine_readings
+                    WHERE udi = %s
+                    ON CONFLICT (reading_id) DO NOTHING
+                    """,
+                    (
+                        failure["machine_failure"],
+                        failure["twf"],
+                        failure["hdf"],
+                        failure["pwf"],
+                        failure["osf"],
+                        failure["rnf"],
+                        failure["udi"],
+                    ),
+                )
